@@ -5,11 +5,9 @@ import {
   useRef,
   useState,
 } from "react";
-import { useAction } from "convex/react";
-import { useSearchParams } from "react-router";
+import { Link, useSearchParams } from "react-router";
 import { Loader2, Navigation } from "lucide-react";
 import { toast } from "sonner";
-import { api } from "@/convex/_generated/api";
 import { TideMap } from "@/components/tide/TideMap";
 import type { MapPoint } from "@/components/tide/TideMap";
 import { TidePanel } from "@/components/tide/TidePanel";
@@ -151,12 +149,10 @@ function trimToWindow(
  * Quick Tides: pan the North American coast, click a point (or search the
  * catalog, or use GPS) and read the tide. Public — no account, no sign-in.
  *
- * Data comes from the keyless NOAA gauge network by default and switches to
- * worldwide WorldTides predictions automatically once WORLDTIDES_API_KEY is
- * configured — the first response tells us which provider is available.
+ * Data comes from the keyless NOAA gauge network, fetched straight from the
+ * browser — there is no backend in this build.
  */
 export default function Dashboard() {
-  const predict = useAction(api.tides.predict);
   const [searchParams, setSearchParams] = useSearchParams();
 
   // A shared link wins; otherwise the last session is restored.
@@ -186,7 +182,6 @@ export default function Dashboard() {
   /** When the current prediction was fetched — anchors the rolling window. */
   const [fetchedAtMs, setFetchedAtMs] = useState(0);
 
-  const providerRef = useRef<"unknown" | "worldtides" | "noaa">("unknown");
   const requestIdRef = useRef(0);
 
   // Warm the gauge index in the background so the first click is quick.
@@ -210,27 +205,9 @@ export default function Dashboard() {
             beginMs: Date.now() - 9 * 60 * 60 * 1000,
             endMs: Date.now() + 51 * 60 * 60 * 1000,
           };
-      if (providerRef.current !== "noaa") {
-        try {
-          const result = await predict({
-            lat: point.lat,
-            lon: point.lon,
-            ...(target ? { date1: range.date1, date2: range.date2 } : {}),
-          });
-          if (result.ok) {
-            providerRef.current = "worldtides";
-            // Shifted and trimmed by the display pass, not here.
-            return result.data;
-          }
-          if (result.reason === "no_key") providerRef.current = "noaa";
-          // A failing key still falls back to the gauge network this click.
-        } catch {
-          // Convex unreachable — use the gauge network.
-        }
-      }
       return await fetchNoaaPrediction(point.lat, point.lon, range);
     },
-    [predict],
+    [],
   );
 
   const runTides = useCallback(
@@ -424,12 +401,12 @@ export default function Dashboard() {
     <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
       <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border px-4 sm:px-6">
         <div className="flex items-baseline gap-4">
-          <a
-            href="/"
+          <Link
+            to="/"
             className="text-sm font-medium uppercase tracking-[0.34em] text-foreground"
           >
             Quick Tides
-          </a>
+          </Link>
           <span className="hidden text-[11px] tracking-[0.06em] text-muted-foreground md:inline">
             Search, click or locate — tide times across North America
           </span>

@@ -1,14 +1,11 @@
 import { Toaster } from "@/components/ui/sonner";
 import { VlyToolbar } from "../vly-toolbar-readonly.tsx";
-import { ConvexAuthProvider } from "@convex-dev/auth/react";
-import { ConvexReactClient } from "convex/react";
 import React, { StrictMode, useEffect, lazy, Suspense } from "react";
 import { createRoot } from "react-dom/client";
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from "react-router";
 import "./index.css";
 
 // Lazy load route components for better code splitting
-const AuthPage = lazy(() => import("./pages/Auth.tsx"));
 const Dashboard = lazy(() => import("./pages/Dashboard.tsx"));
 const NotFound = lazy(() => import("./pages/NotFound.tsx"));
 
@@ -88,9 +85,12 @@ class RootErrorBoundary extends React.Component<
   }
 }
 
-const convex = new ConvexReactClient(import.meta.env.VITE_CONVEX_URL as string);
-
-
+/**
+ * GitHub Pages project sites are served from `/<repo>/`, and Vite's `base`
+ * carries that same prefix here. Strip the trailing slash so the router and
+ * the links it renders agree with the deployed path.
+ */
+const basename = import.meta.env.BASE_URL.replace(/\/$/, "") || "/";
 
 function RouteSyncer() {
   const location = useLocation();
@@ -122,23 +122,17 @@ createRoot(document.getElementById("root")!).render(
       <ToolbarErrorBoundary>
         <VlyToolbar />
       </ToolbarErrorBoundary>
-      <ConvexAuthProvider client={convex}>
-        <BrowserRouter>
-          <RouteSyncer />
-          <Suspense fallback={<RouteLoading />}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route
-                path="/auth"
-                element={<AuthPage redirectAfterAuth="/" />}
-              />
-              <Route path="/dashboard" element={<DashboardRedirect />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
-        <Toaster />
-      </ConvexAuthProvider>
+      <BrowserRouter basename={basename}>
+        <RouteSyncer />
+        <Suspense fallback={<RouteLoading />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="/dashboard" element={<DashboardRedirect />} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </Suspense>
+      </BrowserRouter>
+      <Toaster />
     </RootErrorBoundary>
   </StrictMode>,
 );

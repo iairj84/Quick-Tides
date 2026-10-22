@@ -602,12 +602,8 @@ export function TidePanel({
                   <p className="mt-4 border-t border-border pt-4 text-xs leading-5 text-muted-foreground">
                     Tide data here comes from NOAA&apos;s gauges, which cover
                     U.S. waters. Points off Canada, Mexico or the Caribbean
-                    need a WorldTides key — add one in the project&apos;s Keys
-                    tab as{" "}
-                    <code className="font-mono text-[11px] text-foreground">
-                      WORLDTIDES_API_KEY
-                    </code>
-                    .
+                    aren&apos;t covered by this build — try a spot closer to a
+                    U.S. gauge.
                   </p>
                 ) : null}
               </div>

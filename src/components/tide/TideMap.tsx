@@ -2,13 +2,9 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { useAction } from "convex/react";
-import { api } from "@/convex/_generated/api";
 import { haversineKm } from "@/lib/tides/types";
 import { loadStationIndex } from "@/lib/tides/noaa";
 import type { StationRecord } from "@/lib/tides/noaa";
-import { buoyPopupHtml } from "@/lib/buoys";
-import type { BuoyObs } from "@/lib/buoys";
 import { SURF_CAMERAS } from "@/lib/surfCams";
 import type { SurfCamera } from "@/lib/surfCams";
 
@@ -61,14 +57,6 @@ const GAUGE_STYLE: L.CircleMarkerOptions = {
   fillOpacity: 1,
   className: "tl-gauge-dot",
 };
-const BUOY_STYLE: L.CircleMarkerOptions = {
-  radius: 4,
-  weight: 1.25,
-  fill: true,
-  fillOpacity: 1,
-  className: "tl-buoy-dot",
-};
-
 /** One badge where several markers would pile up; click to dive closer. */
 const clusterIcon = (count: number): L.DivIcon =>
   L.divIcon({
@@ -107,69 +95,27 @@ function escapeHtml(text: string): string {
   return text.replace(/[&<>"']/g, (char) => ESCAPES[char] ?? char);
 }
 
-/**
- * Buoys come from one large file, so answers are cached by view-centre cell
- * and radius bucket — small pans reuse the previous fetch instead of
- * re-downloading. The margin covers the cell rounding.
- */
-const buoyCache = new Map<string, Promise<BuoyObs[] | null>>();
-
-function cachedBuoys(
-  fetchNearby: (
-    lat: number,
-    lon: number,
-    radiusKm: number,
-  ) => Promise<BuoyObs[] | null>,
-  lat: number,
-  lon: number,
-  radiusKm: number,
-): Promise<BuoyObs[] | null> {
-  const cellLat = Math.round(lat);
-  const cellLon = Math.round(lon);
-  const bucket = Math.max(50, Math.ceil((radiusKm + 80) / 50) * 50);
-  const key = `${cellLat}|${cellLon}|${bucket}`;
-  const hit = buoyCache.get(key);
-  if (hit) return hit;
-  const promise = fetchNearby(cellLat, cellLon, bucket).catch(() => null);
-  buoyCache.set(key, promise);
-  if (buoyCache.size > 60) {
-    for (const staleKey of [...buoyCache.keys()].slice(0, 30)) {
-      buoyCache.delete(staleKey);
-    }
-  }
-  return promise;
-}
-
 export function TideMap({ selected, onSelect, hint }: TideMapProps) {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
   const gaugeLayerRef = useRef<L.LayerGroup | null>(null);
-  const buoyLayerRef = useRef<L.LayerGroup | null>(null);
   const cameraLayerRef = useRef<L.LayerGroup | null>(null);
   const refreshSeqRef = useRef(0);
   const refreshTimerRef = useRef<number | null>(null);
-  const lastBuoyRef = useRef<BuoyObs[] | null>(null);
   const onSelectRef = useRef(onSelect);
   const scheduleRef = useRef<() => void>(() => {});
-  const findBuoys = useAction(api.buoys.nearby);
-  const findBuoysRef = useRef(findBuoys);
   const [legend, setLegend] = useState<{
     gauge: boolean;
-    buoy: boolean;
     camera: boolean;
-  }>({ gauge: false, buoy: false, camera: false });
+  }>({ gauge: false, camera: false });
 
   useEffect(() => {
     onSelectRef.current = onSelect;
   }, [onSelect]);
 
-  useEffect(() => {
-    findBuoysRef.current = findBuoys;
-  }, [findBuoys]);
-
   const setLegendPart = useCallback(
-    (part: "gauge" | "buoy" | "camera", on: boolean) => {
+    (part: "gauge" | "camera", on: boolean) => {
       setLegend((prev) =>
         prev[part] === on ? prev : { ...prev, [part]: on },
       );
@@ -180,19 +126,17 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
   const refreshMarkers = useCallback(async () => {
     const map = mapRef.current;
     const gauges = gaugeLayerRef.current;
-    const buoyLayer = buoyLayerRef.current;
     const cameraLayer = cameraLayerRef.current;
-    if (!map || !gauges || !buoyLayer || !cameraLayer) return;
+    if (!map || !gauges || !cameraLayer) return;
 
     const seq = ++refreshSeqRef.current;
     if (map.getZoom() < 3) {
       gauges.clearLayers();
-      buoyLayer.clearLayers();
       cameraLayer.clearLayers();
       setLegend((prev) =>
-        !prev.gauge && !prev.buoy && !prev.camera
+        !prev.gauge && !prev.camera
           ? prev
-          : { gauge: false, buoy: false, camera: false },
+          : { gauge: false, camera: false },
       );
       return;
     }
@@ -236,33 +180,12 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
 
     if (map.getZoom() < MARKER_MIN_ZOOM) {
       gauges.clearLayers();
-      buoyLayer.clearLayers();
       setLegendPart("gauge", false);
-      setLegendPart("buoy", false);
       return;
     }
 
-    const radiusKm = haversineKm(
-      center.lat,
-      center.lng,
-      bounds.getNorthEast().lat,
-      bounds.getNorthEast().lng,
-    );
-
-    // Both sources in flight; either may fail without hurting the other.
-    const [stations, observations] = await Promise.all([
-      loadStationIndex().catch(() => null),
-      cachedBuoys(
-        (lat, lon, km) =>
-          findBuoysRef.current({ lat, lon, radiusKm: km, limit: MAX_DOTS }),
-        center.lat,
-        center.lng,
-        radiusKm,
-      ),
-    ]);
+    const stations = await loadStationIndex().catch(() => null);
     if (seq !== refreshSeqRef.current) return;
-    // null = fetch failed; keep the previous buoys rather than blanking them.
-    if (observations) lastBuoyRef.current = observations;
 
     const byDistance = (
       a: { lat: number; lon: number },
@@ -274,39 +197,19 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
       .filter((station) => bounds.contains([station.lat, station.lon]))
       .sort(byDistance)
       .slice(0, MAX_DOTS);
-    const buoysIn = (observations ?? lastBuoyRef.current ?? []).filter((obs) =>
-      bounds.contains([obs.lat, obs.lon]),
-    );
 
     gauges.clearLayers();
-    buoyLayer.clearLayers();
 
-    interface DrawnDot {
-      lat: number;
-      lon: number;
-      kind: "gauge" | "buoy";
-      station?: StationRecord;
-      obs?: BuoyObs;
-    }
-    const drawn: DrawnDot[] = [
-      ...gaugesIn.map((station) => ({
-        lat: station.lat,
-        lon: station.lon,
-        kind: "gauge" as const,
-        station,
-      })),
-      ...buoysIn.map((obs) => ({
-        lat: obs.lat,
-        lon: obs.lon,
-        kind: "buoy" as const,
-        obs,
-      })),
-    ];
+    const drawn = gaugesIn.map((station: StationRecord) => ({
+      lat: station.lat,
+      lon: station.lon,
+      station,
+    }));
 
     // Grid the screen: markers sharing a ~44 px cell become one badge, so
     // tight estuary clusters never pile up — clicking dives in two zooms.
     const cellPx = 44;
-    const groups = new Map<string, DrawnDot[]>();
+    const groups = new Map<string, typeof drawn>();
     for (const dot of drawn) {
       const point = map.latLngToContainerPoint([dot.lat, dot.lon]);
       const key = `${Math.floor(point.x / cellPx)}:${Math.floor(point.y / cellPx)}`;
@@ -317,30 +220,21 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
 
     for (const group of groups.values()) {
       if (group.length === 1) {
-        const dot = group[0];
-        if (dot.kind === "gauge" && dot.station) {
-          const station = dot.station;
-          L.circleMarker([station.lat, station.lon], GAUGE_STYLE)
-            .bindTooltip(escapeHtml(station.name), {
-              direction: "top",
-              offset: [0, -4],
-              className: "tl-dot-tooltip",
-            })
-            .on("click", () =>
-              onSelectRef.current({
-                lat: station.lat,
-                lon: station.lon,
-                label: station.name,
-              }),
-            )
-            .addTo(gauges);
-        } else if (dot.obs) {
-          L.circleMarker([dot.obs.lat, dot.obs.lon], BUOY_STYLE)
-            .bindPopup(buoyPopupHtml(dot.obs, Math.floor(Date.now() / 1000)), {
-              closeButton: false,
-            })
-            .addTo(buoyLayer);
-        }
+        const station = group[0].station;
+        L.circleMarker([station.lat, station.lon], GAUGE_STYLE)
+          .bindTooltip(escapeHtml(station.name), {
+            direction: "top",
+            offset: [0, -4],
+            className: "tl-dot-tooltip",
+          })
+          .on("click", () =>
+            onSelectRef.current({
+              lat: station.lat,
+              lon: station.lon,
+              label: station.name,
+            }),
+          )
+          .addTo(gauges);
         continue;
       }
 
@@ -354,20 +248,12 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
         lat / group.length,
         lon / group.length,
       ];
-      const gaugeCount = group.filter((dot) => dot.kind === "gauge").length;
-      const buoyCount = group.length - gaugeCount;
-      const what =
-        gaugeCount > 0 && buoyCount > 0
-          ? "markers"
-          : gaugeCount > 0
-            ? "tide gauges"
-            : "buoys";
       L.marker(centroid, {
         icon: clusterIcon(group.length),
         keyboard: false,
         riseOnHover: true,
       })
-        .bindTooltip(`Zoom in — ${group.length} ${what}`, {
+        .bindTooltip(`Zoom in — ${group.length} tide gauges`, {
           direction: "top",
           offset: [0, -8],
           className: "tl-dot-tooltip",
@@ -381,7 +267,6 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
     }
 
     setLegendPart("gauge", gaugesIn.length > 0);
-    setLegendPart("buoy", buoysIn.length > 0);
   }, [setLegendPart]);
 
   const scheduleRefresh = useCallback(() => {
@@ -429,7 +314,6 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
     });
 
     gaugeLayerRef.current = L.layerGroup().addTo(map);
-    buoyLayerRef.current = L.layerGroup().addTo(map);
     cameraLayerRef.current = L.layerGroup().addTo(map);
     map.on("moveend", () => scheduleRef.current());
     scheduleRef.current();
@@ -449,7 +333,6 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
       mapRef.current = null;
       markerRef.current = null;
       gaugeLayerRef.current = null;
-      buoyLayerRef.current = null;
       cameraLayerRef.current = null;
     };
   }, []);
@@ -491,18 +374,12 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
           {hint}
         </div>
       ) : null}
-      {legend.gauge || legend.buoy || legend.camera ? (
+      {legend.gauge || legend.camera ? (
         <div className="pointer-events-none absolute bottom-16 left-3 z-[500] flex items-center gap-3 border border-border/80 bg-background/90 px-3 py-1.5 text-[10px] tracking-[0.08em] text-muted-foreground backdrop-blur-sm">
           {legend.gauge ? (
             <span className="flex items-center gap-1.5">
               <span className="tl-legend-dot tl-legend-gauge" />
               tide gauge
-            </span>
-          ) : null}
-          {legend.buoy ? (
-            <span className="flex items-center gap-1.5">
-              <span className="tl-legend-dot tl-legend-buoy" />
-              buoy
             </span>
           ) : null}
           {legend.camera ? (

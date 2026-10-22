@@ -6,6 +6,9 @@ import { defineConfig } from "vite";
 
 // https://vite.dev/config/
 export default defineConfig({
+  // GitHub Pages project sites are served from /<repo>/; the Pages workflow
+  // sets VITE_BASE_PATH. Local dev and preview keep the root base.
+  base: process.env.VITE_BASE_PATH || "/",
   plugins: [react(), vlyPlugin(), tailwindcss()],
   resolve: {
     alias: {

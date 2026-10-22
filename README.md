@@ -291,3 +291,9 @@ When using convex, make sure:
 - This includes importing generated files like `@/convex/_generated/server`, `@/convex/_generated/api`
 - Remember to import functions like useQuery, useMutation, useAction, etc. from `convex/react`
 - NEVER have return type validators.
+
+## Hosting
+
+A static build of the map (no backend) deploys to GitHub Pages on every push to
+`main`. See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the one-time repository
+setup, the base-path handling and what the static build leaves out.
