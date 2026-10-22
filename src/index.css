@@ -1,0 +1,425 @@
+/* DO NOT CHANGE */
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+/* DO NOT CHANGE */
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* CHANGE VALUES FOR THEME */
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.945 0.014 220);
+  --foreground: oklch(0.3 0.028 245);
+  --card: oklch(0.968 0.01 220);
+  --card-foreground: oklch(0.3 0.028 245);
+  --popover: oklch(0.968 0.01 220);
+  --popover-foreground: oklch(0.3 0.028 245);
+  --primary: oklch(0.47 0.1 240);
+  --primary-foreground: oklch(0.968 0.01 220);
+  --secondary: oklch(0.895 0.016 225);
+  --secondary-foreground: oklch(0.3 0.028 245);
+  --muted: oklch(0.895 0.016 225);
+  --muted-foreground: oklch(0.45 0.028 250);
+  --accent: oklch(0.895 0.016 225);
+  --accent-foreground: oklch(0.3 0.028 245);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.775 0.018 228);
+  --input: oklch(0.775 0.018 228);
+  --ring: oklch(0.55 0.06 240);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+}
+
+.dark {
+  --background: oklch(0.18 0.012 245);
+  --foreground: oklch(0.95 0.006 220);
+  --card: oklch(0.225 0.012 245);
+  --card-foreground: oklch(0.95 0.006 220);
+  --popover: oklch(0.225 0.012 245);
+  --popover-foreground: oklch(0.95 0.006 220);
+  --primary: oklch(0.72 0.09 240);
+  --primary-foreground: oklch(0.2 0.02 245);
+  --secondary: oklch(0.29 0.012 245);
+  --secondary-foreground: oklch(0.95 0.006 220);
+  --muted: oklch(0.29 0.012 245);
+  --muted-foreground: oklch(0.72 0.014 240);
+  --accent: oklch(0.29 0.012 245);
+  --accent-foreground: oklch(0.95 0.006 220);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 18%);
+  --input: oklch(1 0 0 / 22%);
+  --ring: oklch(0.55 0.02 245);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  button:not([disabled]),
+  [role="button"]:not([disabled]) {
+    cursor: pointer;
+  }
+}
+
+/* ------------------------------------------------------------------ *
+ * Tideline — map surface. Kept unlayered and scoped under .map-shell so
+ * it outranks leaflet.css no matter which chunk order the app loads in.
+ * ------------------------------------------------------------------ */
+
+::selection {
+  background: oklch(0.32 0.02 245 / 16%);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+*::-webkit-scrollbar-thumb {
+  background: var(--border);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--muted-foreground);
+}
+
+.map-shell .leaflet-container {
+  background-color: #e6edf1;
+  font-family: inherit;
+  outline: none;
+  cursor: crosshair;
+}
+.map-shell .leaflet-container a {
+  color: var(--foreground);
+}
+.map-shell .leaflet-container.leaflet-dragging {
+  cursor: grabbing;
+}
+.map-shell .leaflet-bar {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  box-shadow: none;
+  overflow: hidden;
+}
+.map-shell .leaflet-bar a,
+.map-shell .leaflet-bar a:hover {
+  width: 30px;
+  height: 30px;
+  line-height: 30px;
+  border-radius: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 300;
+}
+.map-shell .leaflet-bar a:last-child {
+  border-bottom: none;
+}
+.map-shell .leaflet-bar a:hover {
+  background: var(--muted);
+}
+.map-shell .leaflet-bar a.leaflet-disabled {
+  background: var(--card);
+  color: #c9d2d6;
+  cursor: default;
+}
+.map-shell .leaflet-control-attribution {
+  padding: 2px 7px;
+  border-radius: 0;
+  background: rgba(238, 246, 249, 0.9);
+  color: var(--muted-foreground);
+  font-size: 10px;
+  letter-spacing: 0.01em;
+}
+.map-shell .leaflet-control-attribution a {
+  color: inherit;
+  text-decoration: none;
+}
+.map-shell .leaflet-control-attribution a:hover {
+  text-decoration: underline;
+}
+
+.tl-point-icon {
+  background: transparent;
+  border: none;
+}
+.tl-point {
+  position: relative;
+  display: block;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--foreground);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.6);
+}
+.tl-point::after {
+  content: "";
+  position: absolute;
+  inset: 6.5px;
+  border-radius: 50%;
+  background: var(--foreground);
+}
+
+/* ------------------------------------------------------------------ *
+ * Marker dots, their legend and buoy popups — all driven by theme
+ * tokens so dark mode follows without a second definition.
+ * ------------------------------------------------------------------ */
+
+.map-shell .tl-gauge-dot {
+  stroke: var(--muted-foreground);
+  fill: var(--background);
+  cursor: pointer;
+}
+.map-shell .tl-buoy-dot {
+  stroke: var(--primary);
+  fill: var(--primary);
+  cursor: pointer;
+}
+.map-shell .tl-camera-icon {
+  background: transparent;
+  border: none;
+}
+.map-shell .tl-camera-pin {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid var(--primary);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--primary);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 22%);
+  cursor: pointer;
+}
+.map-shell .tl-camera-pin svg {
+  width: 17px;
+  height: 17px;
+}
+.map-shell .tl-camera-pin b {
+  position: absolute;
+  top: -5px;
+  right: -6px;
+  display: grid;
+  min-width: 15px;
+  height: 15px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--foreground);
+  color: var(--background);
+  font-size: 9px;
+  font-weight: 600;
+}
+.map-shell .tl-camera-row {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  border-top: 1px solid var(--border);
+  padding: 8px 0;
+}
+.map-shell .tl-camera-row:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+.map-shell .tl-camera-row strong {
+  font-weight: 500;
+}
+.map-shell .tl-camera-row span {
+  color: var(--muted-foreground);
+  font-size: 11px;
+}
+.map-shell .tl-camera-row a {
+  margin-top: 2px;
+  color: var(--primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.map-shell .tl-legend-camera {
+  color: var(--primary);
+  font-size: 12px;
+}
+.map-shell .tl-dot-tooltip {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 400;
+  padding: 3px 7px;
+}
+.map-shell .tl-dot-tooltip::before {
+  border-top-color: var(--border);
+}
+.map-shell .leaflet-popup-content-wrapper {
+  border: 1px solid var(--border);
+  border-radius: 0;
+  background: var(--card);
+  color: var(--foreground);
+  box-shadow: none;
+}
+.map-shell .leaflet-popup-content {
+  margin: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+}
+.map-shell .leaflet-popup-tip {
+  border: 1px solid var(--border);
+  background: var(--card);
+  box-shadow: none;
+}
+.map-shell .leaflet-popup-close-button {
+  display: none;
+}
+.tl-buoy-title {
+  margin: 0 0 6px;
+  color: var(--muted-foreground);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.tl-buoy-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+.tl-buoy-row span:first-child {
+  color: var(--muted-foreground);
+}
+.tl-buoy-row span:last-child {
+  font-variant-numeric: tabular-nums;
+}
+.tl-legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+.tl-legend-gauge {
+  border: 1px solid var(--muted-foreground);
+  background: var(--background);
+}
+.tl-legend-buoy {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+}
+
+/* ------------------------------------------------------------------ *
+ * Tide-curve extras: the pulsing now-dot and cluster badges.
+ * ------------------------------------------------------------------ */
+
+.tl-now-dot circle {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tl-now-pulse 2.6s ease-in-out infinite;
+}
+@keyframes tl-now-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.7);
+    opacity: 0.55;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .tl-now-dot circle {
+    animation: none;
+  }
+}
+
+.map-shell .tl-cluster-icon {
+  background: transparent;
+  border: none;
+}
+.map-shell .tl-cluster {
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 22px;
+  height: 22px;
+  border: 1.5px solid var(--foreground);
+  border-radius: 50%;
+  background: var(--card);
+  color: var(--foreground);
+  font-size: 10px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
