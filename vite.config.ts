@@ -3,13 +3,75 @@ import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import path from "path";
 import { defineConfig } from "vite";
+import { VitePWA } from "vite-plugin-pwa";
+
+// GitHub Pages project sites are served from /<repo>/; the Pages workflow
+// sets VITE_BASE_PATH. Local dev and preview keep the root base.
+const base = process.env.VITE_BASE_PATH || "/";
 
 // https://vite.dev/config/
 export default defineConfig({
-  // GitHub Pages project sites are served from /<repo>/; the Pages workflow
-  // sets VITE_BASE_PATH. Local dev and preview keep the root base.
-  base: process.env.VITE_BASE_PATH || "/",
-  plugins: [react(), vlyPlugin(), tailwindcss()],
+  base,
+  plugins: [
+    react(),
+    vlyPlugin(),
+    tailwindcss(),
+    // Installable app: precaches the built shell so it opens offline, and
+    // keeps the last tide/forecast/tile responses for a dead-signal beach.
+    VitePWA({
+      // public/manifest.webmanifest is hand-written — keep it in charge.
+      manifest: false,
+      registerType: "autoUpdate",
+      injectRegister: "auto",
+      includeAssets: [
+        "logo.svg",
+        "icon-192.png",
+        "icon-512.png",
+        "icon-maskable-512.png",
+        "apple-touch-icon.png",
+      ],
+      workbox: {
+        globPatterns: ["**/*.{js,css,html,svg,png,webmanifest}"],
+        // Deep links land on the cached shell, including the Pages 404 route.
+        navigateFallback: `${base}index.html`,
+        cleanupOutdatedCaches: true,
+        runtimeCaching: [
+          {
+            // Tide predictions and the station index.
+            urlPattern: /^https:\/\/api\.tidesandcurrents\.noaa\.gov\//i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "noaa",
+              networkTimeoutSeconds: 6,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxAgeSeconds: 86_400, maxEntries: 120 },
+            },
+          },
+          {
+            // Surf, wind and water-temperature models.
+            urlPattern: /^https:\/\/api\.open-meteo\.com\//i,
+            handler: "NetworkFirst",
+            options: {
+              cacheName: "open-meteo",
+              networkTimeoutSeconds: 6,
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxAgeSeconds: 21_600, maxEntries: 80 },
+            },
+          },
+          {
+            // Basemap tiles: pan back over ground you already covered.
+            urlPattern: /^https:\/\/[a-d]\.basemaps\.cartocdn\.com\//i,
+            handler: "CacheFirst",
+            options: {
+              cacheName: "basemap",
+              cacheableResponse: { statuses: [0, 200] },
+              expiration: { maxAgeSeconds: 604_800, maxEntries: 400 },
+            },
+          },
+        ],
+      },
+    }),
+  ],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),

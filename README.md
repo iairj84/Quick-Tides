@@ -297,3 +297,19 @@ When using convex, make sure:
 A static build of the map (no backend) deploys to GitHub Pages on every push to
 `main`. See [GITHUB-PAGES.md](GITHUB-PAGES.md) for the one-time repository
 setup, the base-path handling and what the static build leaves out.
+
+## Install on a phone (Android)
+
+The deployed site is an installable web app: `manifest.webmanifest` carries PNG
+and maskable icons, and `vite-plugin-pwa` emits a service worker that precaches
+the app shell and keeps the last tide, forecast and basemap responses.
+
+Open the Pages URL in Chrome on the phone and use the **Install** button in the
+app header (or Chrome's menu → *Add to Home screen*). It then launches
+fullscreen from the home screen, without browser chrome, and reopens the last
+spot you were reading.
+
+Phones get a different layout from desktops: the map fills the screen and the
+tide panel rides over it as a bottom sheet — collapsed to a one-line summary,
+open to about 90% of the screen. Picking a point opens it. Icons are regenerated
+from `public/logo.svg` with `python3 scripts/make-icons.py`.

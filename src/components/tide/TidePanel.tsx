@@ -418,7 +418,7 @@ export function TidePanel({
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search the station catalog"
             aria-label="Search tide stations"
-            className="h-10 w-full border border-border bg-background pl-9 pr-9 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60"
+            className="h-11 w-full border border-border bg-background pl-9 pr-9 text-base text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-foreground/60 sm:h-10 sm:text-sm"
           />
           {query ? (
             <button
@@ -458,7 +458,7 @@ export function TidePanel({
                       lon: favorite.lon,
                     })
                   }
-                  className={`max-w-[11rem] truncate px-2.5 py-1 text-[11px] tracking-[0.06em] transition-colors ${
+                  className={`min-h-9 max-w-[11rem] truncate px-3 py-2 text-xs tracking-[0.06em] transition-colors sm:min-h-0 sm:px-2.5 sm:py-1 sm:text-[11px] ${
                     active
                       ? "bg-primary text-primary-foreground"
                       : "text-muted-foreground hover:text-foreground"
@@ -470,7 +470,7 @@ export function TidePanel({
                   type="button"
                   aria-label={`Remove ${favorite.label} from saved points`}
                   onClick={() => removeFavorite(favorite)}
-                  className={`border-l px-1.5 transition-colors ${
+                  className={`border-l px-2.5 transition-colors sm:px-1.5 ${
                     active
                       ? "border-primary-foreground/40 text-primary-foreground"
                       : "border-border text-muted-foreground hover:text-foreground"
@@ -498,7 +498,7 @@ export function TidePanel({
                 type="button"
                 aria-pressed={active}
                 onClick={() => onDayFilter(chip.date)}
-                className={`shrink-0 border px-2.5 py-1 text-[11px] tracking-[0.06em] transition-colors ${
+                className={`min-h-9 shrink-0 border px-3 py-1.5 text-xs tracking-[0.06em] transition-colors sm:min-h-0 sm:px-2.5 sm:py-1 sm:text-[11px] ${
                   active
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border text-muted-foreground hover:border-foreground/50 hover:text-foreground"
@@ -515,7 +515,7 @@ export function TidePanel({
             onChange={(event) => onDayFilter(event.target.value || null)}
             aria-label="Pick any date"
             title="Pick any future date"
-            className="w-[8.75rem] shrink-0 border border-border bg-transparent px-2 py-1 text-[11px] tabular-nums text-muted-foreground outline-none transition-colors [color-scheme:light] focus:border-foreground/40"
+            className="h-9 w-[9rem] shrink-0 border border-border bg-transparent px-2 text-xs tabular-nums text-muted-foreground outline-none transition-colors [color-scheme:light] focus:border-foreground/40 sm:h-auto sm:w-[8.75rem] sm:py-1 sm:text-[11px]"
           />
         </div>
       ) : null}
@@ -551,14 +551,14 @@ export function TidePanel({
                 aria-label={
                   isFavorite ? "Remove from saved points" : "Save this point"
                 }
-                className={`grid size-7 shrink-0 place-items-center border transition-colors ${
+                className={`grid size-10 shrink-0 place-items-center border transition-colors sm:size-7 ${
                   isFavorite
                     ? "border-primary text-primary"
                     : "border-border text-muted-foreground hover:border-foreground/40 hover:text-foreground"
                 }`}
               >
                 <Star
-                  className={`size-3.5 ${isFavorite ? "fill-current" : ""}`}
+                  className={`size-4 sm:size-3.5 ${isFavorite ? "fill-current" : ""}`}
                   strokeWidth={1.5}
                 />
               </button>
@@ -566,7 +566,7 @@ export function TidePanel({
                 type="button"
                 onClick={onClear}
                 aria-label="Clear selection"
-                className="grid size-7 shrink-0 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                className="grid size-10 shrink-0 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground sm:size-7"
               >
                 <X className="size-3.5" />
               </button>
@@ -699,7 +699,7 @@ export function TidePanel({
                               aria-pressed={active}
                               title={`Show ${metric.label.toLowerCase()} on the tide curve`}
                               onClick={() => toggleOverlay(metric.key)}
-                              className={`border px-2 py-0.5 text-[10px] uppercase tracking-[0.12em] transition-colors ${
+                              className={`border px-2.5 py-1.5 text-[11px] uppercase tracking-[0.12em] transition-colors sm:px-2 sm:py-0.5 sm:text-[10px] ${
                                 active
                                   ? "border-primary bg-primary text-primary-foreground"
                                   : "border-border text-muted-foreground hover:border-foreground/50 hover:text-foreground"
@@ -715,7 +715,7 @@ export function TidePanel({
                       type="button"
                       onClick={() => setOffsetOpen((open) => !open)}
                       aria-expanded={offsetOpen}
-                      className={`text-[11px] tracking-[0.06em] transition-colors ${
+                      className={`py-2 text-[11px] tracking-[0.06em] transition-colors sm:py-0 ${
                         !isZeroOffset(offset) && !offsetOpen
                           ? "text-primary hover:text-foreground"
                           : "text-muted-foreground hover:text-foreground"
@@ -737,7 +737,7 @@ export function TidePanel({
                             type="button"
                             aria-label="Less time offset"
                             onClick={() => stepOffset("minutes", -5)}
-                            className="grid size-6 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                            className="grid size-9 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground sm:size-6"
                           >
                             −
                           </button>
@@ -749,7 +749,7 @@ export function TidePanel({
                             type="button"
                             aria-label="More time offset"
                             onClick={() => stepOffset("minutes", 5)}
-                            className="grid size-6 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                            className="grid size-9 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground sm:size-6"
                           >
                             +
                           </button>
@@ -764,7 +764,7 @@ export function TidePanel({
                             type="button"
                             aria-label="Less height offset"
                             onClick={() => stepOffset("feet", -0.1)}
-                            className="grid size-6 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                            className="grid size-9 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground sm:size-6"
                           >
                             −
                           </button>
@@ -776,7 +776,7 @@ export function TidePanel({
                             type="button"
                             aria-label="More height offset"
                             onClick={() => stepOffset("feet", 0.1)}
-                            className="grid size-6 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground"
+                            className="grid size-9 place-items-center border border-border text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground sm:size-6"
                           >
                             +
                           </button>
@@ -937,7 +937,7 @@ export function TidePanel({
                   <button
                     type="button"
                     onClick={handleCopyLink}
-                    className="mb-3 inline-flex items-center gap-1.5 border border-border px-2.5 py-1.5 text-[11px] tracking-[0.06em] transition-colors hover:border-foreground/40 hover:text-foreground"
+                    className="mb-3 inline-flex min-h-10 items-center gap-1.5 border border-border px-3 py-2 text-[11px] tracking-[0.06em] transition-colors hover:border-foreground/40 hover:text-foreground sm:min-h-0 sm:px-2.5 sm:py-1.5"
                   >
                     <Link2 className="size-3" strokeWidth={1.5} />
                     Copy link to this spot
@@ -981,7 +981,7 @@ export function TidePanel({
               type="button"
               onClick={onLocate}
               disabled={locating}
-              className="mt-5 inline-flex items-center gap-2 border border-foreground px-4 py-2.5 text-sm transition-colors hover:bg-foreground hover:text-background disabled:opacity-60"
+              className="mt-5 inline-flex min-h-12 items-center gap-2 border border-foreground px-4 py-2.5 text-sm transition-colors hover:bg-foreground hover:text-background disabled:opacity-60 sm:min-h-0"
             >
               {locating ? (
                 <Loader2 className="size-4 animate-spin" />

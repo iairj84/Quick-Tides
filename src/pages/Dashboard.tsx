@@ -6,7 +6,7 @@ import {
   useState,
 } from "react";
 import { Link, useSearchParams } from "react-router";
-import { Loader2, Navigation } from "lucide-react";
+import { ChevronUp, Loader2, Navigation } from "lucide-react";
 import { toast } from "sonner";
 import { TideMap } from "@/components/tide/TideMap";
 import type { MapPoint } from "@/components/tide/TideMap";
@@ -30,6 +30,7 @@ import {
 import type { TideOffset } from "@/lib/tides/offset";
 import { fetchSurf } from "@/lib/marine";
 import type { SurfForecast, SurfStatus } from "@/lib/marine";
+import { InstallApp } from "@/components/InstallApp";
 
 /** Midnight-to-midnight window for a local `YYYY-MM-DD` date. */
 function localDayRange(dateKey: string): {
@@ -181,6 +182,12 @@ export default function Dashboard() {
   const [offset, setOffset] = useState<TideOffset>(ZERO_OFFSET);
   /** When the current prediction was fetched — anchors the rolling window. */
   const [fetchedAtMs, setFetchedAtMs] = useState(0);
+  /**
+   * Phone layout: the panel is a bottom sheet over a full-height map. Open
+   * when a point is already in hand (restored or picked), collapsed when the
+   * visitor is still browsing the coast.
+   */
+  const [sheetOpen, setSheetOpen] = useState(() => restored.point !== null);
 
   const requestIdRef = useRef(0);
 
@@ -213,6 +220,8 @@ export default function Dashboard() {
   const runTides = useCallback(
     (point: MapPoint, day: string | null) => {
       setSelected(point);
+      // Picking a point is a request to read it, so the sheet opens itself.
+      setSheetOpen(true);
       setOffset(loadOffset(point.lat, point.lon));
       setFetchedAtMs(Date.now());
       const requestId = ++requestIdRef.current;
@@ -398,12 +407,12 @@ export default function Dashboard() {
   }, [handleSelect]);
 
   return (
-    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background text-foreground">
-      <header className="flex h-14 shrink-0 items-center justify-between gap-4 border-b border-border px-4 sm:px-6">
-        <div className="flex items-baseline gap-4">
+    <div className="flex h-[100dvh] flex-col overflow-hidden bg-background pt-[env(safe-area-inset-top)] text-foreground">
+      <header className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border px-3 sm:gap-4 sm:px-6">
+        <div className="flex min-w-0 items-baseline gap-4">
           <Link
             to="/"
-            className="text-sm font-medium uppercase tracking-[0.34em] text-foreground"
+            className="text-sm font-medium uppercase tracking-[0.24em] text-foreground sm:tracking-[0.34em]"
           >
             Quick Tides
           </Link>
@@ -411,51 +420,91 @@ export default function Dashboard() {
             Search, click or locate — tide times across North America
           </span>
         </div>
-        <button
-          type="button"
-          onClick={handleLocate}
-          disabled={locating}
-          className="inline-flex items-center gap-2 border border-border px-3 py-1.5 text-[11px] uppercase tracking-[0.14em] text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground disabled:opacity-60"
-        >
-          {locating ? (
-            <Loader2 className="size-3.5 animate-spin" />
-          ) : (
-            <Navigation className="size-3.5" strokeWidth={1.5} />
-          )}
-          {locating ? "Locating…" : "My location"}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <InstallApp />
+          <button
+            type="button"
+            onClick={handleLocate}
+            disabled={locating}
+            className="inline-flex h-10 items-center gap-2 border border-border px-3 text-[11px] uppercase tracking-[0.12em] text-muted-foreground transition-colors hover:border-foreground/40 hover:text-foreground disabled:opacity-60 sm:h-auto sm:py-1.5 sm:tracking-[0.14em]"
+          >
+            {locating ? (
+              <Loader2 className="size-4 animate-spin sm:size-3.5" />
+            ) : (
+              <Navigation className="size-4 sm:size-3.5" strokeWidth={1.5} />
+            )}
+            {locating ? "Locating…" : "My location"}
+          </button>
+        </div>
       </header>
 
-      <main className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <div className="relative h-[48vh] shrink-0 lg:h-auto lg:min-w-0 lg:flex-1">
+      {/*
+        Phones get the map edge to edge with the tide panel riding over it as
+        a sheet: collapsed it is a one-line summary strip, open it takes most
+        of the screen. Tablets and desktops keep the side-by-side split.
+      */}
+      <main className="relative flex min-h-0 flex-1 flex-col lg:flex-row">
+        <div className="absolute inset-0 lg:relative lg:inset-auto lg:h-auto lg:min-w-0 lg:flex-1">
           <TideMap
             selected={selected}
             onSelect={handleMapSelect}
-            hint={
-              <>
-                SCROLL TO ZOOM&nbsp;&nbsp;·&nbsp;&nbsp;CLICK TO READ THE TIDE
-              </>
-            }
+            hint={<>&nbsp;SELECT A POINT TO READ THE TIDE&nbsp;</>}
           />
         </div>
-        <aside className="min-h-0 flex-1 overflow-y-auto border-t border-border lg:w-[27rem] lg:flex-none lg:border-l lg:border-t-0">
-          <TidePanel
-            selected={selected}
-            status={status}
-            prediction={displayPrediction}
-            error={error}
-            origin={origin}
-            locating={locating}
-            dayFilter={dayFilter}
-            onDayFilter={handleDayFilter}
-            surf={surf}
-            surfStatus={surfStatus}
-            offset={offset}
-            onOffsetChange={handleOffsetChange}
-            onClear={handleClear}
-            onSelectStation={handleSelectStation}
-            onLocate={handleLocate}
-          />
+        <aside
+          className={`absolute inset-x-0 bottom-0 z-[1100] flex flex-col overflow-hidden border-t border-border bg-background transition-[height] duration-300 ease-out lg:relative lg:inset-auto lg:z-auto lg:h-auto lg:w-[27rem] lg:flex-none lg:border-l lg:border-t-0 lg:transition-none ${
+            sheetOpen ? "h-[90%]" : "h-14"
+          }`}
+        >
+          <button
+            type="button"
+            onClick={() => setSheetOpen((open) => !open)}
+            aria-expanded={sheetOpen}
+            aria-controls="tide-panel"
+            aria-label={sheetOpen ? "Collapse tide panel" : "Expand tide panel"}
+            className="flex h-14 shrink-0 items-center justify-between gap-3 border-b border-border/60 px-4 text-left lg:hidden"
+          >
+            <span className="flex min-w-0 items-center gap-2.5">
+              <span
+                aria-hidden="true"
+                className="h-1 w-8 shrink-0 rounded-full bg-border"
+              />
+              <span className="truncate text-[13px] text-foreground">
+                {selected
+                  ? (selected.label ?? "Selected point")
+                  : "Search or tap the map"}
+              </span>
+            </span>
+            <ChevronUp
+              className={`size-4 shrink-0 text-muted-foreground transition-transform duration-300 ${
+                sheetOpen ? "rotate-180" : ""
+              }`}
+              strokeWidth={1.5}
+            />
+          </button>
+
+          <div
+            id="tide-panel"
+            className="min-h-0 flex-1 overflow-y-auto overscroll-contain pb-[env(safe-area-inset-bottom)]"
+          >
+            <TidePanel
+              selected={selected}
+              status={status}
+              prediction={displayPrediction}
+              error={error}
+              origin={origin}
+              locating={locating}
+              dayFilter={dayFilter}
+              onDayFilter={handleDayFilter}
+              surf={surf}
+              surfStatus={surfStatus}
+              offset={offset}
+              onOffsetChange={handleOffsetChange}
+              onClear={handleClear}
+              onSelectStation={handleSelectStation}
+              onLocate={handleLocate}
+            />
+          </div>
         </aside>
       </main>
     </div>

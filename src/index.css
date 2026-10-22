@@ -211,6 +211,16 @@
   text-decoration: underline;
 }
 
+/*
+ * Phones: the tide panel rides over the map as a sheet, so Leaflet's bottom
+ * furniture moves up above the collapsed handle instead of hiding beneath it.
+ */
+@media (max-width: 1023px) {
+  .map-shell .leaflet-bottom {
+    bottom: 4rem;
+  }
+}
+
 .tl-point-icon {
   background: transparent;
   border: none;

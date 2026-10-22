@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from "react";
 import {
   Area,
   CartesianGrid,
@@ -53,14 +54,17 @@ interface ChartPoint {
   cond?: number;
 }
 
-/** Even 6-hour marks across the visible window. */
-function hourTicks(fromMs: number, toMs: number): number[] {
-  const sixHours = 6 * 3600 * 1000;
-  const first = Math.ceil(fromMs / sixHours) * sixHours;
+/** Even marks across the visible window, every 6h or 12h. */
+function hourTicks(fromMs: number, toMs: number, stepHours = 6): number[] {
+  const step = stepHours * 3600 * 1000;
+  const first = Math.ceil(fromMs / step) * step;
   const ticks: number[] = [];
-  for (let t = first; t <= toMs; t += sixHours) ticks.push(t);
+  for (let t = first; t <= toMs; t += step) ticks.push(t);
   return ticks;
 }
+
+/** Phone widths can't fit eight clock labels, so the axis halves them. */
+const NARROW_PX = 420;
 
 export function TideChart({
   heights,
@@ -71,9 +75,26 @@ export function TideChart({
   conditionName,
   conditionUnit,
 }: TideChartProps) {
+  const holderRef = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+
+  // The axis detail follows the space the chart actually got.
+  useEffect(() => {
+    const node = holderRef.current;
+    if (!node) return;
+    const observer = new ResizeObserver((entries) => {
+      const next = entries[0]?.contentRect.width ?? 0;
+      setWidth((prev) => (Math.abs(prev - next) < 1 ? prev : next));
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const narrow = width > 0 && width < NARROW_PX;
+
   if (heights.length === 0) {
     return (
-      <div className="flex h-44 items-center justify-center border border-border/70 text-xs text-muted-foreground">
+      <div className="flex h-52 items-center justify-center border border-border/70 text-xs text-muted-foreground sm:h-44">
         No curve available for this point.
       </div>
     );
@@ -97,14 +118,14 @@ export function TideChart({
   });
   const fromMs = data[0].time;
   const toMs = data[data.length - 1].time;
-  const ticks = hourTicks(fromMs, toMs);
+  const ticks = hourTicks(fromMs, toMs, narrow ? 12 : 6);
   const nowMs = nowSec * 1000;
   // The hero readout and the dot come from the same interpolation.
   const now = nowReading(heights, nowSec);
   const nowVisible = now !== null && nowMs >= fromMs && nowMs <= toMs;
 
   return (
-    <div className="h-48 w-full">
+    <div ref={holderRef} className="h-60 w-full sm:h-48">
       <ResponsiveContainer width="100%" height="100%">
         <ComposedChart
           data={data}
@@ -125,15 +146,15 @@ export function TideChart({
             tickFormatter={(value: number) => formatClock(value / 1000, timezone)}
             tickLine={false}
             axisLine={{ stroke: HAIRLINE }}
-            tick={{ fill: MUTED, fontSize: 10 }}
+            tick={{ fill: MUTED, fontSize: narrow ? 11 : 10 }}
             interval={0}
           />
           <YAxis
             yAxisId={0}
             tickLine={false}
             axisLine={false}
-            width={34}
-            tick={{ fill: MUTED, fontSize: 10 }}
+            width={narrow ? 30 : 34}
+            tick={{ fill: MUTED, fontSize: narrow ? 11 : 10 }}
             tickFormatter={(value: number) => value.toFixed(1)}
             domain={["auto", "auto"]}
             allowDecimals
@@ -144,8 +165,8 @@ export function TideChart({
               orientation="right"
               tickLine={false}
               axisLine={false}
-              width={30}
-              tick={{ fill: MUTED, fontSize: 9 }}
+              width={narrow ? 26 : 30}
+              tick={{ fill: MUTED, fontSize: narrow ? 10 : 9 }}
               tickFormatter={(value: number) => Math.round(value).toString()}
               domain={["auto", "auto"]}
             />
@@ -197,7 +218,12 @@ export function TideChart({
             strokeWidth={1.25}
             fill="url(#tideFill)"
             dot={false}
-            activeDot={{ r: 3, fill: INK, stroke: SURFACE, strokeWidth: 1.5 }}
+            activeDot={{
+              r: narrow ? 5 : 3,
+              fill: INK,
+              stroke: SURFACE,
+              strokeWidth: 1.5,
+            }}
             isAnimationActive={false}
           />
           {hasOverlay ? (
@@ -210,7 +236,12 @@ export function TideChart({
               strokeWidth={1.25}
               strokeDasharray="5 3"
               dot={false}
-              activeDot={{ r: 2.5, fill: ACCENT, stroke: SURFACE, strokeWidth: 1.5 }}
+              activeDot={{
+                r: narrow ? 4.5 : 2.5,
+                fill: ACCENT,
+                stroke: SURFACE,
+                strokeWidth: 1.5,
+              }}
               isAnimationActive={false}
               connectNulls={false}
             />

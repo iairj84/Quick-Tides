@@ -370,12 +370,12 @@ export function TideMap({ selected, onSelect, hint }: TideMapProps) {
     <div className="map-shell absolute inset-0">
       <div ref={containerRef} className="absolute inset-0" />
       {hint ? (
-        <div className="pointer-events-none absolute bottom-7 left-3 z-[500] border border-border/80 bg-background/90 px-3 py-1.5 text-[11px] tracking-[0.08em] text-muted-foreground backdrop-blur-sm">
+        <div className="pointer-events-none absolute right-3 top-3 z-[500] border border-border/80 bg-background/90 px-3 py-1.5 text-[11px] tracking-[0.08em] text-muted-foreground backdrop-blur-sm lg:bottom-7 lg:left-3 lg:right-auto lg:top-auto">
           {hint}
         </div>
       ) : null}
       {legend.gauge || legend.camera ? (
-        <div className="pointer-events-none absolute bottom-16 left-3 z-[500] flex items-center gap-3 border border-border/80 bg-background/90 px-3 py-1.5 text-[10px] tracking-[0.08em] text-muted-foreground backdrop-blur-sm">
+        <div className="pointer-events-none absolute bottom-[7.5rem] left-3 z-[500] flex items-center gap-3 border border-border/80 bg-background/90 px-3 py-1.5 text-[10px] tracking-[0.08em] text-muted-foreground backdrop-blur-sm lg:bottom-16">
           {legend.gauge ? (
             <span className="flex items-center gap-1.5">
               <span className="tl-legend-dot tl-legend-gauge" />
